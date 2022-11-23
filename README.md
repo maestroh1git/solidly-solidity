@@ -1,6 +1,6 @@
 # Sample Hardhat Project
 
-This project demonstrates basic Hardhat use cases. It comes with a contracts and tests for the contract.
+This project demonstrates basic Hardhat use cases. It comes with a contracts and tests for the contracts.
 
 Try running some of the following tasks:
 

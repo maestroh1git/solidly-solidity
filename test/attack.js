@@ -119,4 +119,40 @@ describe("Attack", function() {
         const balanceOfGame = await _game.getBalance()
         expect(balanceOfGame).to.equal(BigNumber.from("0"))
     })
+
+    it("After being declared the winner, should not allow anyone else to become the winner", async function(){
+        //deploy the goodAuction contract
+        const goodAuction = await ethers.getContractFactory("GoodAuction")
+        const _goodAuction = await goodAuction.deploy()
+        await _goodAuction.deployed()
+
+        console.log("GoodAuction contract address:", _goodAuction.address)
+
+        //deploy the attackAuction contract
+        const attackAuction = await ethers.getContractFactory("AttackAuction")
+        const _attackAuction = await attackAuction.deploy(_goodAuction.address)
+        await _attackAuction.deployed()
+
+        console.log("AttackAuction contract address:", _attackAuction.address)
+
+        //now let us attack the goodAuction contract
+        //get two addresses
+        const[_, addr1, addr2] = await ethers.getSigners()
+
+        //initially let addr1 be the winner of the auction
+        let tx = await _goodAuction.connect(addr1).setCurrentAuctionPrice({value: parseEther("1"),})
+        await tx.wait();
+
+        //start the attack and make the attackAution.sol the current winner of the goodAuction
+
+        tx = await _attackAuction.attack({value: parseEther("3"),})
+        await tx.wait()
+
+        //now let us try making addr2 the current winner of the goodAuction
+        tx = await _goodAuction.connect(addr2).setCurrentAuctionPrice({value: parseEther("4"),})
+        await tx.wait()
+
+        //now check that the currernt winner is still the attacker
+        expect(await _goodAuction.currentWinner()).to.equal(_attackAuction.address)
+    })
 })
